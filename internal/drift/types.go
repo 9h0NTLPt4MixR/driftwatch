@@ -1,5 +1,7 @@
 package drift
 
+import "fmt"
+
 // Diff represents a single field-level discrepancy between expected and actual state.
 type Diff struct {
 	// Key is the configuration field name that differs.
@@ -8,6 +10,11 @@ type Diff struct {
 	Expected string
 	// Actual is the value observed from the live service.
 	Actual string
+}
+
+// String returns a human-readable description of the diff.
+func (d Diff) String() string {
+	return fmt.Sprintf("%s: expected %q, got %q", d.Key, d.Expected, d.Actual)
 }
 
 // Result holds the drift analysis outcome for a single service.

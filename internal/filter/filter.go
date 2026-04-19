@@ -27,12 +27,12 @@ func Apply(results []drift.Result, opts Options) []drift.Result {
 			continue
 		}
 
-		if opts.OnlyDrifted && !r.HasDrift {
-			continue
-		}
-
 		if len(opts.Keys) > 0 {
 			r = filterKeys(r, opts.Keys)
+		}
+
+		if opts.OnlyDrifted && !r.HasDrift {
+			continue
 		}
 
 		filtered = append(filtered, r)

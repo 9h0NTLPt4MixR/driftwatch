@@ -62,6 +62,18 @@ func TestRemove(t *testing.T) {
 	}
 }
 
+func TestRemove_NonExistent(t *testing.T) {
+	p := tmpPath(t)
+	_ = watchlist.Add(p, "svc-a", "reason", 1)
+	if err := watchlist.Remove(p, "svc-z"); err != nil {
+		t.Fatalf("expected no error removing non-existent service, got %v", err)
+	}
+	entries, _ := watchlist.List(p)
+	if len(entries) != 1 {
+		t.Errorf("expected list unchanged, got %d entries", len(entries))
+	}
+}
+
 func TestList_MissingFile(t *testing.T) {
 	p := filepath.Join(t.TempDir(), "missing.json")
 	entries, err := watchlist.List(p)

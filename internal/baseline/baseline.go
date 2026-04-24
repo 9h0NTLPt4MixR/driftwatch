@@ -19,7 +19,7 @@ type Entry struct {
 
 // File is the top-level structure persisted to disk.
 type File struct {
-	Version  int     `json:"version"`
+	Version   int     `json:"version"`
 	Baselines []Entry `json:"baselines"`
 }
 
@@ -65,6 +65,7 @@ func Load(path string) (*File, error) {
 
 // Compare returns new drift results relative to the saved baseline.
 // Only keys present in the baseline expected map are compared.
+// Services present in current but not in the baseline are included as-is.
 func Compare(base *File, current []drift.Result) []drift.Result {
 	index := make(map[string]Entry, len(base.Baselines))
 	for _, e := range base.Baselines {
@@ -93,4 +94,14 @@ func Compare(base *File, current []drift.Result) []drift.Result {
 		})
 	}
 	return out
+}
+
+// HasDrift reports whether any result in the given slice contains at least one diff.
+func HasDrift(results []drift.Result) bool {
+	for _, r := range results {
+		if len(r.Diffs) > 0 {
+			return true
+		}
+	}
+	return false
 }

@@ -17,6 +17,7 @@ const (
 )
 
 // Write renders drift results to w in the given format.
+// Supported formats are FormatText and FormatJSON; unknown formats fall back to text.
 func Write(w io.Writer, results []drift.Result, format Format) error {
 	switch format {
 	case FormatJSON:
@@ -24,6 +25,18 @@ func Write(w io.Writer, results []drift.Result, format Format) error {
 	default:
 		return writeText(w, results)
 	}
+}
+
+// Summary returns a brief human-readable summary of the provided results,
+// reporting how many services were checked and how many had drift detected.
+func Summary(results []drift.Result) string {
+	driftCount := 0
+	for _, r := range results {
+		if len(r.Diffs) > 0 {
+			driftCount++
+		}
+	}
+	return fmt.Sprintf("%d service(s) checked, %d with drift detected", len(results), driftCount)
 }
 
 func writeText(w io.Writer, results []drift.Result) error {

@@ -21,7 +21,7 @@ var scorecardCmd = &cobra.Command{
 }
 
 func init() {
-	scorecard Cmd.Flags().BoolVar(&scorecardJSON, "json", false, "Output scorecard as JSON")
+	scorecardCmd.Flags().BoolVar(&scorecardJSON, "json", false, "Output scorecard as JSON")
 	rootCmd.AddCommand(scorecardCmd)
 }
 
@@ -40,6 +40,10 @@ func runScorecard(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		results = append(results, res)
+	}
+
+	if len(results) == 0 {
+		return fmt.Errorf("no services could be scanned; check configuration and connectivity")
 	}
 
 	score := scorecard.Compute(results)

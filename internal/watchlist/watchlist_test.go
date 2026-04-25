@@ -93,3 +93,14 @@ func TestLoad_InvalidJSON(t *testing.T) {
 		t.Error("expected error for invalid JSON")
 	}
 }
+
+func TestAdd_EmptyServiceName(t *testing.T) {
+	p := tmpPath(t)
+	if err := watchlist.Add(p, "", "reason", 1); err == nil {
+		t.Error("expected error when adding entry with empty service name")
+	}
+	entries, _ := watchlist.List(p)
+	if len(entries) != 0 {
+		t.Errorf("expected no entries after failed add, got %d", len(entries))
+	}
+}

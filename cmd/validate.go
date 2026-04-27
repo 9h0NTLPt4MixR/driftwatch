@@ -44,20 +44,9 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("scan: %w", err)
 	}
 
-	rule := validator.Rule{
-		MaxDriftedServices:   validateMaxServices,
-		MaxDriftedKeys:       validateMaxKeys,
-		RequireCleanServices: validateClean,
-	}
-
-	if validatePolicyFile != "" {
-		data, readErr := os.ReadFile(validatePolicyFile)
-		if readErr != nil {
-			return fmt.Errorf("read rules file: %w", readErr)
-		}
-		if jsonErr := json.Unmarshal(data, &rule); jsonErr != nil {
-			return fmt.Errorf("parse rules file: %w", jsonErr)
-		}
+	rule, err := buildValidationRule()
+	if err != nil {
+		return err
 	}
 
 	out := validator.Validate(results, rule)
@@ -71,6 +60,30 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "   [%s] %s\n", v.Service, v.Message)
 	}
 	return fmt.Errorf("validation failed with %d violation(s)", len(out.Violations))
+}
+
+// buildValidationRule constructs a validator.Rule from CLI flags. If a policy
+// file is provided via --rules, it is parsed and its values take precedence
+// over any individually supplied flags.
+func buildValidationRule() (validator.Rule, error) {
+	rule := validator.Rule{
+		MaxDriftedServices:   validateMaxServices,
+		MaxDriftedKeys:       validateMaxKeys,
+		RequireCleanServices: validateClean,
+	}
+
+	if validatePolicyFile == "" {
+		return rule, nil
+	}
+
+	data, err := os.ReadFile(validatePolicyFile)
+	if err != nil {
+		return rule, fmt.Errorf("read rules file: %w", err)
+	}
+	if err := json.Unmarshal(data, &rule); err != nil {
+		return rule, fmt.Errorf("parse rules file: %w", err)
+	}
+	return rule, nil
 }
 
 // ensure drift.Result is used (avoids import cycle in test file helper)

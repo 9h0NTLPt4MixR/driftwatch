@@ -117,3 +117,22 @@ func TestCompare_NoDrift(t *testing.T) {
 		t.Errorf("expected no diffs, got %v", out[0].Diffs)
 	}
 }
+
+// TestCompare_UnknownService verifies that current results for services not
+// present in the baseline are returned unchanged (no diffs injected).
+func TestCompare_UnknownService(t *testing.T) {
+	base := &baseline.File{
+		Version:   1,
+		Baselines: []baseline.Entry{},
+	}
+	current := []drift.Result{
+		{ServiceName: "unknown", Actual: map[string]string{"KEY": "val"}},
+	}
+	out := baseline.Compare(base, current)
+	if len(out) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(out))
+	}
+	if len(out[0].Diffs) != 0 {
+		t.Errorf("expected no diffs for unknown service, got %v", out[0].Diffs)
+	}
+}

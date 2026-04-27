@@ -66,6 +66,22 @@ func TestCompute_GroupByTag_WithUntagged(t *testing.T) {
 	}
 }
 
+func TestCompute_GroupByTag_MissingTagKey(t *testing.T) {
+	// When GroupByTag is used but TagKey is empty, all results should fall
+	// into the "(untagged)" bucket since no tag key can be matched.
+	results := []drift.Result{
+		makeResult("api", true, map[string]string{"env": "prod"}),
+		makeResult("worker", false, map[string]string{"env": "staging"}),
+	}
+	groups := grouper.Compute(results, grouper.Options{By: grouper.GroupByTag, TagKey: ""})
+	if len(groups) != 1 {
+		t.Fatalf("expected 1 group, got %d", len(groups))
+	}
+	if groups[0].Name != "(untagged)" || len(groups[0].Results) != 2 {
+		t.Errorf("unexpected group: %+v", groups[0])
+	}
+}
+
 func TestCompute_Empty(t *testing.T) {
 	groups := grouper.Compute(nil, grouper.Options{By: grouper.GroupByService})
 	if len(groups) != 0 {
